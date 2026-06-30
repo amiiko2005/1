@@ -56,6 +56,44 @@
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+    function getDisplayScale(pageWidth) {
+      const padding = 16;
+      const maxWidth = Math.min(window.innerWidth - padding, 920);
+      return maxWidth / pageWidth;
+    }
+
+    function getPixelRatio() {
+      return Math.min(window.devicePixelRatio || 1, 3);
+    }
+
+    async function renderPage(page, container) {
+      const baseViewport = page.getViewport({ scale: 1 });
+      const scale = getDisplayScale(baseViewport.width);
+      const viewport = page.getViewport({ scale });
+      const pixelRatio = getPixelRatio();
+
+      const canvas = document.createElement('canvas');
+      canvas.className = 'page';
+      const context = canvas.getContext('2d', { alpha: false });
+
+      canvas.width = Math.floor(viewport.width * pixelRatio);
+      canvas.height = Math.floor(viewport.height * pixelRatio);
+      canvas.style.width = Math.floor(viewport.width) + 'px';
+      canvas.style.height = Math.floor(viewport.height) + 'px';
+
+      container.appendChild(canvas);
+
+      const transform = pixelRatio !== 1
+        ? [pixelRatio, 0, 0, pixelRatio, 0, 0]
+        : null;
+
+      await page.render({
+        canvasContext: context,
+        viewport: viewport,
+        transform: transform
+      }).promise;
+    }
+
     async function renderPdf() {
       const loading = document.getElementById('loading');
       const container = document.getElementById('pages');
@@ -67,22 +105,7 @@
 
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
           const page = await pdf.getPage(pageNum);
-          const baseViewport = page.getViewport({ scale: 1 });
-          const maxWidth = Math.min(window.innerWidth - 16, 920);
-          const scale = maxWidth / baseViewport.width;
-          const viewport = page.getViewport({ scale });
-
-          const canvas = document.createElement('canvas');
-          canvas.className = 'page';
-          canvas.width = viewport.width;
-          canvas.height = viewport.height;
-
-          container.appendChild(canvas);
-
-          await page.render({
-            canvasContext: canvas.getContext('2d'),
-            viewport: viewport
-          }).promise;
+          await renderPage(page, container);
         }
       } catch (error) {
         loading.textContent = 'Не удалось загрузить PDF. Откройте сайт через GitHub Pages или локальный сервер.';
