@@ -11,20 +11,86 @@
       box-sizing: border-box;
     }
 
-    html, body {
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
+    html {
+      scroll-behavior: smooth;
     }
 
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
+    body {
+      background: #525659;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    #pages {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 8px 24px;
+    }
+
+    .page {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+      background: #fff;
+    }
+
+    #loading {
+      color: #fff;
+      text-align: center;
+      padding: 40px 16px;
+      font-family: system-ui, sans-serif;
+      font-size: 16px;
     }
   </style>
 </head>
 <body>
-  <iframe src="document.pdf" type="application/pdf"></iframe>
+  <div id="loading">Загрузка...</div>
+  <div id="pages"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    async function renderPdf() {
+      const loading = document.getElementById('loading');
+      const container = document.getElementById('pages');
+
+      try {
+        const pdf = await pdfjsLib.getDocument('document.pdf').promise;
+
+        loading.style.display = 'none';
+
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          const page = await pdf.getPage(pageNum);
+          const baseViewport = page.getViewport({ scale: 1 });
+          const maxWidth = Math.min(window.innerWidth - 16, 920);
+          const scale = maxWidth / baseViewport.width;
+          const viewport = page.getViewport({ scale });
+
+          const canvas = document.createElement('canvas');
+          canvas.className = 'page';
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+
+          container.appendChild(canvas);
+
+          await page.render({
+            canvasContext: canvas.getContext('2d'),
+            viewport: viewport
+          }).promise;
+        }
+      } catch (error) {
+        loading.textContent = 'Не удалось загрузить PDF. Откройте сайт через GitHub Pages или локальный сервер.';
+        console.error(error);
+      }
+    }
+
+    renderPdf();
+  </script>
 </body>
 </html>
