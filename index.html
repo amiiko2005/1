@@ -11,6 +11,10 @@
       box-sizing: border-box;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       background: #525659;
       overflow-y: auto;
@@ -26,30 +30,12 @@
       padding: 12px 8px 24px;
     }
 
-    .page-slot {
-      position: relative;
-      background: #fff;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
-      overflow: hidden;
-    }
-
-    .page-slot canvas {
+    .page {
       display: block;
-      width: 100%;
-      height: 100%;
-    }
-
-    .page-slot.loading::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(90deg, #eee 25%, #f8f8f8 50%, #eee 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.2s infinite;
-    }
-
-    @keyframes shimmer {
-      to { background-position: -200% 0; }
+      max-width: 100%;
+      height: auto;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+      background: #fff;
     }
 
     #loading {
@@ -70,13 +56,6 @@
     pdfjsLib.GlobalWorkerOptions.workerSrc =
       'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-    const isMobile = window.matchMedia('(max-width: 768px)').matches;
-    const MAX_RENDERED = isMobile ? 2 : 5;
-
-    let pdfDoc = null;
-    let displayScale = 1;
-    const slots = [];
-
     function getDisplayScale(pageWidth) {
       const padding = 16;
       const maxWidth = Math.min(window.innerWidth - padding, 920);
@@ -84,151 +63,57 @@
     }
 
     function getPixelRatio() {
-      const dpr = window.devicePixelRatio || 1;
-      return isMobile ? Math.min(dpr, 2) : Math.min(dpr, 3);
+      return Math.min(window.devicePixelRatio || 1, 3);
     }
 
-    function getDistanceFromViewport(slotEl) {
-      const rect = slotEl.getBoundingClientRect();
-      const viewHeight = window.innerHeight;
+    async function renderPage(page, container) {
+      const baseViewport = page.getViewport({ scale: 1 });
+      const scale = getDisplayScale(baseViewport.width);
+      const viewport = page.getViewport({ scale });
+      const pixelRatio = getPixelRatio();
 
-      if (rect.bottom < 0) return -rect.bottom;
-      if (rect.top > viewHeight) return rect.top - viewHeight;
-      return 0;
+      const canvas = document.createElement('canvas');
+      canvas.className = 'page';
+      const context = canvas.getContext('2d', { alpha: false });
+
+      canvas.width = Math.floor(viewport.width * pixelRatio);
+      canvas.height = Math.floor(viewport.height * pixelRatio);
+      canvas.style.width = Math.floor(viewport.width) + 'px';
+      canvas.style.height = Math.floor(viewport.height) + 'px';
+
+      container.appendChild(canvas);
+
+      const transform = pixelRatio !== 1
+        ? [pixelRatio, 0, 0, pixelRatio, 0, 0]
+        : null;
+
+      await page.render({
+        canvasContext: context,
+        viewport: viewport,
+        transform: transform
+      }).promise;
     }
 
-    function trimRenderedPages() {
-      const rendered = slots.filter(function (s) { return s.rendered; });
-      if (rendered.length <= MAX_RENDERED) return;
-
-      rendered
-        .sort(function (a, b) {
-          return getDistanceFromViewport(b.el) - getDistanceFromViewport(a.el);
-        })
-        .slice(MAX_RENDERED)
-        .forEach(unrenderSlot);
-    }
-
-    function unrenderSlot(slot) {
-      if (!slot.rendered) return;
-
-      const canvas = slot.el.querySelector('canvas');
-      if (canvas) {
-        const ctx = canvas.getContext('2d');
-        if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-        canvas.width = 0;
-        canvas.height = 0;
-      }
-
-      slot.el.innerHTML = '';
-      slot.el.classList.remove('loading');
-      slot.rendered = false;
-      slot.rendering = false;
-    }
-
-    async function renderSlot(slot) {
-      if (slot.rendered || slot.rendering || !pdfDoc) return;
-
-      slot.rendering = true;
-      slot.el.classList.add('loading');
-
-      try {
-        const page = await pdfDoc.getPage(slot.pageNum);
-        const viewport = page.getViewport({ scale: displayScale });
-        const pixelRatio = getPixelRatio();
-
-        const canvas = document.createElement('canvas');
-        const context = canvas.getContext('2d', { alpha: false });
-
-        canvas.width = Math.floor(viewport.width * pixelRatio);
-        canvas.height = Math.floor(viewport.height * pixelRatio);
-
-        const transform = pixelRatio !== 1
-          ? [pixelRatio, 0, 0, pixelRatio, 0, 0]
-          : null;
-
-        await page.render({
-          canvasContext: context,
-          viewport: viewport,
-          transform: transform
-        }).promise;
-
-        slot.el.innerHTML = '';
-        slot.el.appendChild(canvas);
-        slot.el.classList.remove('loading');
-        slot.rendered = true;
-        trimRenderedPages();
-      } catch (error) {
-        slot.el.classList.remove('loading');
-        slot.el.textContent = 'Ошибка загрузки страницы';
-        console.error(error);
-      }
-
-      slot.rendering = false;
-    }
-
-    function createSlots(numPages, width, height) {
+    async function renderPdf() {
+      const loading = document.getElementById('loading');
       const container = document.getElementById('pages');
 
-      for (let pageNum = 1; pageNum <= numPages; pageNum++) {
-        const el = document.createElement('div');
-        el.className = 'page-slot';
-        el.style.width = Math.floor(width) + 'px';
-        el.style.height = Math.floor(height) + 'px';
-        el.dataset.page = String(pageNum);
-        container.appendChild(el);
-
-        slots.push({
-          pageNum: pageNum,
-          el: el,
-          rendered: false,
-          rendering: false
-        });
-      }
-    }
-
-    const observer = new IntersectionObserver(
-      function (entries) {
-        entries.forEach(function (entry) {
-          const slot = slots.find(function (s) { return s.el === entry.target; });
-          if (!slot) return;
-
-          if (entry.isIntersecting) {
-            renderSlot(slot);
-          } else {
-            const distance = getDistanceFromViewport(slot.el);
-            if (distance > window.innerHeight * 1.5) {
-              unrenderSlot(slot);
-            }
-          }
-        });
-      },
-      { rootMargin: '300px 0px', threshold: 0.01 }
-    );
-
-    async function initPdf() {
-      const loading = document.getElementById('loading');
-
       try {
-        pdfDoc = await pdfjsLib.getDocument('document.pdf').promise;
-
-        const firstPage = await pdfDoc.getPage(1);
-        const baseViewport = firstPage.getViewport({ scale: 1 });
-        displayScale = getDisplayScale(baseViewport.width);
-        const viewport = firstPage.getViewport({ scale: displayScale });
-
-        createSlots(pdfDoc.numPages, viewport.width, viewport.height);
-        slots.forEach(function (slot) { observer.observe(slot.el); });
+        const pdf = await pdfjsLib.getDocument('document.pdf').promise;
 
         loading.style.display = 'none';
-        renderSlot(slots[0]);
+
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          const page = await pdf.getPage(pageNum);
+          await renderPage(page, container);
+        }
       } catch (error) {
         loading.textContent = 'Не удалось загрузить PDF. Откройте сайт через GitHub Pages или локальный сервер.';
         console.error(error);
       }
     }
 
-    initPdf();
+    renderPdf();
   </script>
 </body>
 </html>
