@@ -1,0 +1,101 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="favicon.svg">
+  <meta name="description" content="Контакты WebLine — позвонить, Telegram, MAX, email и время работы.">
+  <title>Контакты — WebLine</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="logo">&gt;_ <span>WebLine</span></a>
+      <nav class="nav">
+        <a href="index.html">Главная</a>
+        <a href="uslugi.html">Услуги</a>
+        <a href="portfolio.html">Портфолио</a>
+        <a href="process.html">Процесс</a>
+        <a href="tseny.html">Что входит</a>
+        <a href="o-nas.html">О нас</a>
+        <a href="kontakty.html" class="active">Контакты</a>
+      </nav>
+      <div class="header-tools">
+        <div class="header-actions">
+          <a href="tel:+79135653839" class="header-action" aria-label="Позвонить">
+            <svg class="header-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <button type="button" class="header-action messenger-open" aria-label="Telegram" data-messenger-name="Telegram" data-app-url="tg://resolve?phone=79135653839" data-web-url="https://t.me/+79135653839">
+            <svg class="header-action-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button type="button" class="header-action header-action--text messenger-open" aria-label="MAX" data-messenger-name="MAX" data-app-url="max://max.ru/u/f9LHodD0cOLGtf8KB2TEBFTOUegxn5QIkC54LNBj_Z_xKpQ5yg3k71QA6WI" data-web-url="https://max.ru/u/f9LHodD0cOLGtf8KB2TEBFTOUegxn5QIkC54LNBj_Z_xKpQ5yg3k71QA6WI">
+            <span class="header-action-label">MAX</span>
+          </button>
+        </div>
+        <button class="nav-toggle" type="button" aria-label="Меню" aria-expanded="false">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-hero container">
+      <h1>Контакты</h1>
+      <p>Нужен сайт или Telegram-бот? Напишите или позвоните — ответим в рабочее время.</p>
+    </section>
+
+    <section class="section container">
+      <div class="contact-channels">
+        <article class="card contact-channel">
+          <span class="contact-channel-icon" aria-hidden="true">📞</span>
+          <h3>Телефон</h3>
+          <p>Позвоните — обсудим задачу и сроки.</p>
+          <a href="tel:+79135653839" class="btn btn-primary">Позвонить</a>
+        </article>
+
+        <article class="card contact-channel">
+          <span class="contact-channel-icon" aria-hidden="true">✈️</span>
+          <h3>Telegram</h3>
+          <p>Напишите в мессенджер — ответим в рабочее время.</p>
+          <button type="button" class="btn btn-primary messenger-open" data-messenger-name="Telegram" data-app-url="tg://resolve?phone=79135653839" data-web-url="https://t.me/+79135653839">Написать в Telegram</button>
+        </article>
+
+        <article class="card contact-channel">
+          <span class="contact-channel-icon" aria-hidden="true">✉️</span>
+          <h3>Email</h3>
+          <p>Напишите на почту — ответим в течение рабочего дня.</p>
+          <a href="mailto:jurimarchevsky@yandex.ru" class="btn btn-primary">Написать на почту</a>
+        </article>
+
+        <article class="card contact-channel">
+          <span class="contact-channel-icon" aria-hidden="true">💬</span>
+          <h3>MAX</h3>
+          <p>Удобно, если пользуетесь мессенджером MAX.</p>
+          <button type="button" class="btn btn-primary messenger-open" data-messenger-name="MAX" data-app-url="max://max.ru/u/f9LHodD0cOLGtf8KB2TEBFTOUegxn5QIkC54LNBj_Z_xKpQ5yg3k71QA6WI" data-web-url="https://max.ru/u/f9LHodD0cOLGtf8KB2TEBFTOUegxn5QIkC54LNBj_Z_xKpQ5yg3k71QA6WI">Написать в MAX</button>
+        </article>
+
+        <article class="card contact-channel contact-channel--info">
+          <span class="contact-channel-icon" aria-hidden="true">🕐</span>
+          <h3>Время работы</h3>
+          <p>Отвечаем на звонки и сообщения в рабочие часы.</p>
+          <span class="contact-channel-meta">Пн–Пт, 10:00–19:00 (МСК)</span>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>© 2026 WebLine. Самописная разработка сайтов и Telegram-ботов.</p>
+      <div class="footer-links">
+        <a href="uslugi.html">Услуги</a>
+        <a href="kontakty.html">Контакты</a>
+        <a href="o-nas.html">О компании</a>
+      </div>
+    </div>
+  </footer>
+  <script src="js/metrika.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
